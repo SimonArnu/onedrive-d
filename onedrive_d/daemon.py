@@ -15,7 +15,7 @@ import config
 import live_api
 from send2trash import send2trash
 
-MAX_WORKER_NUM = 2
+MAX_WORKER_NUM = 1
 WORKER_EVENT_INTERVAL = 1
 NETWORKERR_WAIT_INTERVAL = 60
 DAEMON_DB_PATH = config.APP_CONFIG_PATH + '/onedrive.sqlite'
@@ -585,24 +585,24 @@ class OneDrive_Synchronizer(threading.Thread):
 							# TODO: What if the files are different in content?
 							item['status'] = 'synced'
 							# config.log.debug(entry_local_path + ' was not changed. Skip.')
-						elif local_mtime > remote_mtime:
-							# local file is newer, upload it
-							row = self.find_entry(parent_path = local_path, name = item['name'])
-							if row != None and row['id'] == item['id'] and config.str_to_time(row['client_updated_time']) == remote_mtime:
-								# the file is changed offline, and the remote one wasn't changed before.
-								config.log.info('"' + target_path + ' is strictly newer. Upload it.')
-								item['status'] = 'put'
-								self.add_work('put', target_path, remote_parent_id = item['parent_id'], postwork='n')
-							else:
-								# the files are changed and no way to guarantee which one is abs newer.
-								config.log.info('"' + target_path + ' is newer but conflicts can exist. Rename the local file.')
-								item['status'] = 'get'
-								try:
-									new_name = resolve_conflict(target_path, config.OS_HOSTNAME + ', newer')
-									all_local_items.append(new_name)
-									self.add_work('get', target_path, remote_id = item['id'], postwork = 'n')
-								except OSError as e:
-									config.log.error('OSError {0}: {1}. Path: {2}.'.format(e.errno, e.strerr, e.filename))
+						#~ elif local_mtime > remote_mtime:
+							#~ # local file is newer, upload it
+							#~ row = self.find_entry(parent_path = local_path, name = item['name'])
+							#~ if row != None and row['id'] == item['id'] and config.str_to_time(row['client_updated_time']) == remote_mtime:
+								#~ # the file is changed offline, and the remote one wasn't changed before.
+								#~ config.log.info('"' + target_path + ' is strictly newer. Upload it.')
+								#~ #item['status'] = 'put'
+								#~ #self.add_work('put', target_path, remote_parent_id = item['parent_id'], postwork='n')
+							#~ else:
+								#~ # the files are changed and no way to guarantee which one is abs newer.
+								#~ config.log.info('"' + target_path + ' is newer but conflicts can exist. Rename the local file.')
+								#~ item['status'] = 'get'
+								#~ try:
+									#~ new_name = resolve_conflict(target_path, config.OS_HOSTNAME + ', newer')
+									#~ all_local_items.append(new_name)
+									#~ self.add_work('get', target_path, remote_id = item['id'], postwork = 'n')
+								#~ except OSError as e:
+									#~ config.log.error('OSError {0}: {1}. Path: {2}.'.format(e.errno, e.strerr, e.filename))
 						else:
 							# in this branch the local file is older.
 							row = self.find_entry(parent_path = local_path, name = item['name'])
